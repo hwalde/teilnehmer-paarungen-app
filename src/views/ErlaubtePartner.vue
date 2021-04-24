@@ -12,7 +12,7 @@
       </ul>
       <div v-if="!showAsTable" class="block">
         <p v-for="(gruppe, index) in gruppenList" :key="index" style="text-align: left">
-          {{gruppe.teilnehmer}} hat folgende erlaubte Partner:<br>{{gruppe.erlaubtePartner}}
+          {{ gruppe.teilnehmer }} hat folgende erlaubte Partner:<br>{{ gruppe.erlaubtePartner }}
         </p>
       </div>
       <div v-if="showAsTable" class="block">
@@ -25,8 +25,8 @@
           </thead>
           <tbody>
           <tr v-for="(gruppe, index) in gruppenList" :key="index">
-            <td>{{gruppe.teilnehmer}}</td>
-            <td>{{gruppe.erlaubtePartner}}</td>
+            <td>{{ gruppe.teilnehmer }}</td>
+            <td>{{ gruppe.erlaubtePartner }}</td>
           </tr>
           </tbody>
         </table>
@@ -36,46 +36,45 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import {defineComponent, onMounted, onUnmounted, ref} from 'vue';
 import Container from "@/Container";
 import {Subscription} from "rxjs";
-// import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
-
-let gruppenListSubscription:Subscription;
 
 export default defineComponent({
   name: 'ErlaubtePartner',
-  // components: {
-  //   HelloWorld,
-  // },
-  data() {
-    return {
-      componentUpdate:0,
-      showAsTable:true,
-      gruppenList:[] as {teilnehmer:string, erlaubtePartner:string}[],
-    }
-  },
-  created() {
-    gruppenListSubscription = Container()
-        .getErlaubtePartnerService()
-        .getTeilnehmer2ErlaubtePartnerMap$()
-        .subscribe(teilnehmer2ErlaubtePartnerMap => {
-      console.log("updated teilnehmer2ErlaubtePartnerMap:");
-      console.log(teilnehmer2ErlaubtePartnerMap);
-      this.gruppenList = [];
-       teilnehmer2ErlaubtePartnerMap.forEach((value, key) => {
-        this.gruppenList.push({teilnehmer:key, erlaubtePartner:value.join(", ")});
-      });
-      this.componentUpdate++;
-    });
-  },
-  unmounted() {
-    if(gruppenListSubscription) {
-      gruppenListSubscription.unsubscribe();
-    }
-  },
-  methods: {
+  setup() {
+    const componentUpdate = ref(0);
+    const showAsTable = ref(true);
+    const gruppenList = ref([] as { teilnehmer: string, erlaubtePartner: string }[]);
 
+    let gruppenListSubscription: Subscription;
+
+    onMounted(() => {
+      gruppenListSubscription = Container()
+          .getErlaubtePartnerService()
+          .getTeilnehmer2ErlaubtePartnerMap$()
+          .subscribe(teilnehmer2ErlaubtePartnerMap => {
+            console.log("updated teilnehmer2ErlaubtePartnerMap:");
+            console.log(teilnehmer2ErlaubtePartnerMap);
+            gruppenList.value = [];
+            teilnehmer2ErlaubtePartnerMap.forEach((value, key) => {
+              gruppenList.value.push({teilnehmer: key, erlaubtePartner: value.join(", ")});
+            });
+            componentUpdate.value++;
+          });
+    });
+
+    onUnmounted(() => {
+      if (gruppenListSubscription) {
+        gruppenListSubscription.unsubscribe();
+      }
+    });
+
+    return {
+      componentUpdate,
+      showAsTable,
+      gruppenList
+    }
   }
 });
 </script>

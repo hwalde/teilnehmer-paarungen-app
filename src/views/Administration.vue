@@ -12,26 +12,23 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import {defineComponent} from 'vue';
 import Container from "@/Container";
-// import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
 
 export default defineComponent({
   name: 'Administration',
-  // components: {
-  //   HelloWorld,
-  // },
-  methods: {
-    exportBackup() {
+  setup() {
+    const exportBackup = (): void => {
       Container().getExportImportService().export("backup.json", () => {
         alert("Backup erfolgreich gespeichert");
       }, (errorMessage) => {
         alert("Es trat ein Fehler beim Anlegen des Backups auf: " + errorMessage);
       });
-    },
-    importBackup() {
+    };
+
+    const importBackup = (): void => {
       const doBackup = confirm("Warnung dies wird alle Daten unwiderruflich überschreiben. Möchtest du wirklich fortfahren?");
-      if(!doBackup) {
+      if (!doBackup) {
         return; // do nothing
       }
       Container().getExportImportService().import("backup.json", () => {
@@ -39,10 +36,11 @@ export default defineComponent({
       }, (errorMessage) => {
         alert("Es trat ein Fehler beim Einspielen des Backups auf: " + errorMessage);
       });
-    },
-    eraseAllData() {
+    };
+
+    const eraseAllData = (): void => {
       const doBackup = confirm("Warnung dies wird alle Daten unwiderruflich löschen. Möchtest du wirklich fortfahren?");
-      if(!doBackup) {
+      if (!doBackup) {
         return; // do nothing
       }
       Container().getDatabaseService().eraseAllData();
@@ -50,6 +48,12 @@ export default defineComponent({
       Container().getTeilnehmerService().reload();
       Container().getVerbotenePaarungenService().reload();
       alert("Es wurden alle Daten gelöscht!");
+    };
+
+    return {
+      exportBackup,
+      importBackup,
+      eraseAllData,
     }
   }
 });
@@ -59,12 +63,15 @@ export default defineComponent({
 ul {
   list-style: none;
 }
+
 li {
   padding: 0.3em;
 }
+
 .dangerous-link {
-  color:red;
+  color: red;
 }
+
 .good-link {
   color: #00b300;
   font-weight: bold;
